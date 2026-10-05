@@ -9,6 +9,7 @@
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "mondayuecppProject.h"
+#include "Interface/InteractableInterface.h"
 
 AmondayuecppProjectCharacter::AmondayuecppProjectCharacter()
 {
@@ -32,6 +33,23 @@ AmondayuecppProjectCharacter::AmondayuecppProjectCharacter()
 	FirstPersonCameraComponent->bEnableFirstPersonScale = true;
 	FirstPersonCameraComponent->FirstPersonFieldOfView = 70.0f;
 	FirstPersonCameraComponent->FirstPersonScale = 0.6f;
+
+	ShowInterationUISphere = CreateDefaultSubobject<USphereComponent>(TEXT("ShowInteractUI"));
+	
+	InteractionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractSphere"));
+
+	ShowInterationUISphere->SetupAttachment(RootComponent);
+	InteractionSphere->SetupAttachment(RootComponent);
+
+	ShowInterationUISphere->SetSphereRadius(400.f);
+	InteractionSphere->SetSphereRadius(100.f);
+
+	ShowInterationUISphere->SetCollisionEnabled(
+		ECollisionEnabled::QueryOnly
+	);
+	InteractionSphere->SetCollisionEnabled(
+		ECollisionEnabled::QueryOnly
+	);
 
 	// configure the character comps
 	GetMesh()->SetOwnerNoSee(true);
@@ -59,11 +77,77 @@ void AmondayuecppProjectCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 		// Looking/Aiming
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AmondayuecppProjectCharacter::LookInput);
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AmondayuecppProjectCharacter::LookInput);
+
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AmondayuecppProjectCharacter::DoInteract);
+
 	}
 	else
 	{
 		UE_LOG(LogmondayuecppProject, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
+
+
+	ShowInterationUISphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnShowInteractionUIBegin);
+	ShowInterationUISphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnShowInteractionUIEnd);
+
+	InteractionSphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnInteractionBegin);
+	InteractionSphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnInteractionEnd);
+
+}
+
+void AmondayuecppProjectCharacter::OnInteractionBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor)
+	{
+		return;
+	}
+
+	if (OtherActor->Implements<UInteractableInterface>())
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Cyan,
+				TEXT("CurrentInteractActorFound")
+			);
+		}
+		CurrentInteractActor = OtherActor;
+	}
+}
+
+void AmondayuecppProjectCharacter::OnInteractionEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (!OtherActor)
+	{
+		return;
+	}
+
+	if (OtherActor->Implements<UInteractableInterface>())
+	{
+		if (OtherActor == CurrentInteractActor)
+		{
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(
+					-1,
+					15.f,
+					FColor::Cyan,
+					TEXT("CurrentInteractActorDisFound")
+				);
+			}
+			CurrentInteractActor = nullptr;
+		}
+	}
+}
+
+void AmondayuecppProjectCharacter::OnShowInteractionUIBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+}
+
+void AmondayuecppProjectCharacter::OnShowInteractionUIEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
 }
 
 
@@ -117,4 +201,32 @@ void AmondayuecppProjectCharacter::DoJumpEnd()
 {
 	// pass StopJumping to the character
 	StopJumping();
+}
+
+void AmondayuecppProjectCharacter::DoInteract()
+{
+
+	if (!CurrentInteractActor)
+	{
+		return;
+	}
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			15.f,
+			FColor::Red,
+			TEXT("DoInteractPressed")
+		);
+	}
+
+	//if (CurrentInteractActor->Implements<UInteractableInterface>())
+	//{
+	//	if (IInteractableInterface* Interact = Cast<IInteractableInterface>(CurrentInteractActor))
+	//	{
+	//		Interact->Interact();
+	//	}
+	//}
+	IInteractableInterface::Execute_Interact(CurrentInteractActor);
 }
