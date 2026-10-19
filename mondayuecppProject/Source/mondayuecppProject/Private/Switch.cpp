@@ -33,7 +33,7 @@ void ASwitch::Tick(float DeltaTime)
 
 void ASwitch::Interact_Implementation()
 {
-	if (!ExecuteActor)
+	if (ExecuteActors.Num() == 0)
 	{
 		return;
 	}
@@ -43,11 +43,32 @@ void ASwitch::Interact_Implementation()
 		GEngine->AddOnScreenDebugMessage(
 			-1,
 			15.f,
-			FColor::Cyan,
+			FColor::Yellow,
 			TEXT("ExecuteActorStart")
 		);
 	}
+	for (AActor* Actor : ExecuteActors)
+	{
+		if (!Actor)
+		{
+			continue;
+		}
 
-	ExecuteActor->ExecuteTask();
+		if (Actor->Implements<UIExecuteInterface>())
+		{
+			IIExecuteInterface::Execute_ExecuteAction(Actor);
+
+			AActor* Arrow = IIExecuteInterface::Execute_GetArrow(Actor);
+
+			if (!Arrow)
+			{
+				return;
+			}
+
+			OnInteractBegin.Broadcast(Arrow);
+
+		}
+	}
+
 }
 

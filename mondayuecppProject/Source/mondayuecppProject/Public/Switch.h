@@ -8,7 +8,10 @@
 #include "Interface/InteractableInterface.h"
 #include "Switch.generated.h"
 
-class AExecuteActorBash;
+class AExecuteActorBase;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractBegin,AActor*,InteractActor);
+
 UCLASS()
 class MONDAYUECPPPROJECT_API ASwitch : public AActor, public IInteractableInterface
 {
@@ -30,10 +33,18 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* StaticMesh;
 
-	UPROPERTY(VisibleAnywhere)
-	AExecuteActorBash* ExecuteActor = nullptr;
+	//UPROPERTY(EditAnywhere)
+	//AActor* ExecuteActor = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	//<AActor*> ExecuteActor = { nullptr };
+	TArray<TObjectPtr<AActor>> ExecuteActors;
 
 public:
+
+	UPROPERTY(BlueprintAssignable, Category = "Interact")
+	FOnInteractBegin OnInteractBegin;
+
 	virtual void Interact_Implementation() override;
 
 };

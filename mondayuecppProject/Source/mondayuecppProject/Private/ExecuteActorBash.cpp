@@ -4,7 +4,7 @@
 #include "ExecuteActorBash.h"
 
 // Sets default values
-AExecuteActorBash::AExecuteActorBash()
+AExecuteActorBase::AExecuteActorBase()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -14,20 +14,20 @@ AExecuteActorBash::AExecuteActorBash()
 }
 
 // Called when the game starts or when spawned
-void AExecuteActorBash::BeginPlay()
+void AExecuteActorBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
 // Called every frame
-void AExecuteActorBash::Tick(float DeltaTime)
+void AExecuteActorBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-void AExecuteActorBash::ExecuteTask()
+void AExecuteActorBase::ExecuteTask()
 {
 	if (GEngine)
 	{

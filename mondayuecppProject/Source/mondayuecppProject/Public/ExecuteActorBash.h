@@ -4,16 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "interface/IExecuteInterface.h"
 #include "ExecuteActorBash.generated.h"
 
 UCLASS()
-class MONDAYUECPPPROJECT_API AExecuteActorBash : public AActor
+class MONDAYUECPPPROJECT_API AExecuteActorBase : public AActor, public IIExecuteInterface
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AExecuteActorBash();
+	AExecuteActorBase();
 
 protected:
 	// Called when the game starts or when spawned
