@@ -12,12 +12,15 @@ AActorBase::AActorBase()
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	SetRootComponent(StaticMesh);
 
-	// ArrowComponentを作成する
-	Arrow = CreateDefaultSubobject<AActor>(TEXT("Arrow"));
+	CameraTargetArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("CameraTargetArrow"));
+	CameraTargetArrow->SetupAttachment(RootComponent);
 
-	// ArrowComponentの位置を設定する
+	//// ArrowComponentを作成する
+	//Arrow = CreateDefaultSubobject<AActor>(TEXT("Arrow"));
 
-	// ArrowComponentをStaticMeshComponentにAttachする
+	//// ArrowComponentの位置を設定する
+
+	//// ArrowComponentをStaticMeshComponentにAttachする
 
 }
 
@@ -35,13 +38,44 @@ void AActorBase::Tick(float DeltaTime)
 
 }
 
-void AActorBase::ExecuteAction_Implementation()
-{
 
+bool AActorBase::TryRegisterActivation_Implementation(AActor* InstigatorActor)
+{
+	// Generic executable actors are ready as soon as they are activated.
+	return IsValid(InstigatorActor);
 }
 
-AActor* AActorBase::GetArrow_Implementation()
+void AActorBase::ExecuteAction_Implementation(AActor* InstigatorActor)
 {
-	return Arrow;
+	// Intentionally empty. Child classes implement their own action.
 }
+
+FTransform AActorBase::GetCameraTargetTransform_Implementation()
+{
+	if (IsValid(CameraTargetArrow))
+	{
+		return CameraTargetArrow->GetComponentTransform();
+	}
+
+	return GetActorTransform();
+}
+
+bool AActorBase::IsExecutionComplete_Implementation()
+{
+	// Generic actors that do not have an asynchronous action finish immediately.
+	return true;
+}
+
+
+
+//
+//void AActorBase::ExecuteAction_Implementation()
+//{
+//
+//}
+//
+//AActor* AActorBase::GetArrow_Implementation()
+//{
+//	return Arrow;
+//}
 

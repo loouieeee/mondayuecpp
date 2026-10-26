@@ -5,94 +5,239 @@
 
 AExecuteDoor::AExecuteDoor()
 {
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bStartWithTickEnabled = false;
+    SetActorTickEnabled(false);
 }
 
 void AExecuteDoor::BeginPlay()
 {
-	Super::BeginPlay();
-
-	ActorState = EActorState::InActive;
-	speed = 50.f;
-	ActivateCounter = 0;
+    Super::BeginPlay();
+    SetActorTickEnabled(false);
 }
 
-// Called every frame
 void AExecuteDoor::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
 
-	Execute(DeltaTime);
+    if (DoorState != EDoorState::Opening)
+    {
+        SetActorTickEnabled(false);
+        return;
+    }
+
+    OpeningElapsed += DeltaTime;
+    const float SafeDuration = FMath::Max(OpenDuration, KINDA_SMALL_NUMBER);
+    const float Alpha = FMath::Clamp(OpeningElapsed / SafeDuration, 0.0f, 1.0f);
+
+    SetActorLocation(FMath::Lerp(OpeningStartLocation, OpeningTargetLocation, Alpha));
+
+    if (Alpha >= 1.0f)
+    {
+        DoorState = EDoorState::Open;
+        SetActorTickEnabled(false);
+    }
+
+
+		//FVector OpeningElapsed = GetActorLocation();
+		//OpeningElapsed += GetActorForwardVector() * 5 * DeltaTime;
+		//SetActorLocation(OpeningElapsed);
+
+		//if (timer >= 2.f)
+		//{
+		//	//bIsExucute = false;	
+		//	ActorState = EActorState::InActive;
+		//}
 }
 
-void AExecuteDoor::Execute(float DeltaTime)
+bool AExecuteDoor::TryRegisterActivation_Implementation(AActor* InstigatorActor)
 {
-	if (ActorState == EActorState::Active)
-	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Green,
-				TEXT("ExecuteStart")
-			);
-		}
+    if (!IsValid(InstigatorActor) || DoorState != EDoorState::Closed)
+    {
+        return false;
+    }
 
-		timer += DeltaTime;
+    if (ActivationMode == EDoorActivationMode::AnySwitch)
+    {
+        DoorState = EDoorState::Ready;
+        return true;
+    }
 
-		FVector Location = GetActorLocation();
-		Location += GetActorForwardVector() * speed * DeltaTime;
-		SetActorLocation(Location);
+    // AllRequiredSwitches mode: a switch must be explicitly listed on this door.
+    bool bIsRequiredSwitch = false;
+    for (const TObjectPtr<AActor>& RequiredSwitchPtr : RequiredSwitches)
+    {
+        if (RequiredSwitchPtr.Get() == InstigatorActor)
+        {
+            bIsRequiredSwitch = true;
+            break;
+        }
+    }
 
-		if (timer >= 2.f)
-		{
-			//bIsExucute = false;	
-			ActorState = EActorState::InActive;
-		}
-	}
+    if (RequiredSwitches.Num() == 0 || !bIsRequiredSwitch)
+    {
+        return false;
+    }
 
-	ActivateCounter = 0;
+    // TSet prevents the same switch from being counted twice.
+    ActivatedSwitches.Add(InstigatorActor);
+
+    bool bHasAtLeastOneValidRequirement = false;
+    for (const TObjectPtr<AActor>& RequiredSwitchPtr : RequiredSwitches)
+    {
+        AActor* RequiredSwitch = RequiredSwitchPtr.Get();
+        if (!IsValid(RequiredSwitch))
+        {
+            continue;
+        }
+
+        bHasAtLeastOneValidRequirement = true;
+
+        bool bRequirementActivated = false;
+        for (const TObjectPtr<AActor>& ActivatedSwitchPtr : ActivatedSwitches)
+        {
+            if (ActivatedSwitchPtr.Get() == RequiredSwitch)
+            {
+                bRequirementActivated = true;
+                break;
+            }
+        }
+
+        if (!bRequirementActivated)
+        {
+            return false;
+        }
+    }
+
+    if (!bHasAtLeastOneValidRequirement)
+    {
+        UE_LOG(LogTemp, Warning,
+            TEXT("Door %s uses AllRequiredSwitches but has no valid RequiredSwitches."),
+            *GetName());
+        return false;
+    }
+
+    DoorState = EDoorState::Ready;
+    return true;
 }
 
-void AExecuteDoor::ExecuteAction_Implementation()
+void AExecuteDoor::ExecuteAction_Implementation(AActor* InstigatorActor)
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(
-			-1,
-			15.f,
-			FColor::Green,
-			TEXT("ExecuteDoor")
-		);
-	}
-	if (ActorState == EActorState::Active)
-	{
-		return;
-	}
+    if (DoorState != EDoorState::Ready)
+    {
+        return;
+    }
 
-	timer = 0;
-	ActivateCounter++;
+    DoorState = EDoorState::Opening;
+    OpeningElapsed = 0.0f;
+    OpeningStartLocation = GetActorLocation();
+    OpeningTargetLocation = OpeningStartLocation + GetActorForwardVector() * OpenDistance;
 
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(
-			-1,
-			15.f,
-			FColor::Green,
-			TEXT("ActivateCounter " + ActivateCounter)
-		);
-	}
-
-	if (ActivateCounter >= NumToActivate)
-	{
-		ActorState = EActorState::Active;
-	}
-	//bIsExucute = true;
+    SetActorTickEnabled(true);
 }
 
-AActor* AExecuteDoor::GetArrow_Implementation()
+bool AExecuteDoor::IsExecutionComplete_Implementation()
 {
-	return Arrow;
+    return DoorState == EDoorState::Open;
 }
+
+
+
+//#include "ExecuteDoor.h"
+//
+//AExecuteDoor::AExecuteDoor()
+//{
+//}
+//
+//void AExecuteDoor::BeginPlay()
+//{
+//	Super::BeginPlay();
+//
+//	ActorState = EActorState::InActive;
+//	speed = 50.f;
+//	ActivateCounter = 0;
+//}
+//
+//// Called every frame
+//void AExecuteDoor::Tick(float DeltaTime)
+//{
+//	Super::Tick(DeltaTime);
+//
+//	Execute(DeltaTime);
+//}
+//
+//void AExecuteDoor::Execute(float DeltaTime)
+//{
+//	if (ActorState == EActorState::Active)
+//	{
+//		if (GEngine)
+//		{
+//			GEngine->AddOnScreenDebugMessage(
+//				-1,
+//				15.f,
+//				FColor::Green,
+//				TEXT("ExecuteStart")
+//			);
+//		}
+//
+//		timer += DeltaTime;
+//
+//		FVector Location = GetActorLocation();
+//		Location += GetActorForwardVector() * speed * DeltaTime;
+//		SetActorLocation(Location);
+//
+//		if (timer >= 2.f)
+//		{
+//			//bIsExucute = false;	
+//			ActorState = EActorState::InActive;
+//		}
+//	}
+//
+//	ActivateCounter = 0;
+//}
+
+
+
+
+//void AExecuteDoor::ExecuteAction_Implementation()
+//{
+//	if (GEngine)
+//	{
+//		GEngine->AddOnScreenDebugMessage(
+//			-1,
+//			15.f,
+//			FColor::Green,
+//			TEXT("ExecuteDoor")
+//		);
+//	}
+//	if (ActorState == EActorState::Active)
+//	{
+//		return;
+//	}
+//
+//	timer = 0;
+//	ActivateCounter++;
+//
+//	if (GEngine)
+//	{
+//		GEngine->AddOnScreenDebugMessage(
+//			-1,
+//			15.f,
+//			FColor::Green,
+//			TEXT("ActivateCounter " + ActivateCounter)
+//		);
+//	}
+//
+//	if (ActivateCounter >= NumToActivate)
+//	{
+//		ActorState = EActorState::Active;
+//	}
+//	//bIsExucute = true;
+//}
+//
+//AActor* AExecuteDoor::GetArrow_Implementation()
+//{
+//	return Arrow;
+//}
 
 

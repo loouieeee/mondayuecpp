@@ -24,17 +24,26 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void ExecuteAction_Implementation() override;
+	//virtual void ExecuteAction_Implementation() override;
 
-	virtual AActor* GetArrow_Implementation() override;
+	//virtual AActor* GetArrow_Implementation() override;
+
+	virtual bool TryRegisterActivation_Implementation(AActor* InstigatorActor) override;
+	virtual void ExecuteAction_Implementation(AActor* InstigatorActor) override;
+	virtual FTransform GetCameraTargetTransform_Implementation() override;
+	virtual bool IsExecutionComplete_Implementation() override;
 
 
 protected:
 	UPROPERTY(EditAnywhere)
 	AActor* Arrow;
 
-private:
-	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* StaticMesh;
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStaticMeshComponent> StaticMesh;
+
+	/** Place/rotate this arrow in the child Blueprint to choose the camera target. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	TObjectPtr<UArrowComponent> CameraTargetArrow;
 
 };
