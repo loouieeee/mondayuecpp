@@ -29,7 +29,7 @@ enum class EDoorState : uint8
 //UENUM(BlueprintType)
 //enum class EActorState : uint8
 //{
-//	None        UMETA(DisplayName = "None"),        // 初期状態
+//	None        UMETA(DisplayName = "None"),        
 //	Active		UMETA(DisplayName = "Active"),
 //	InActive	UMETA(DisplayName = "InActive")
 //};
@@ -88,18 +88,6 @@ private:
 
 	FVector OpeningTargetLocation = FVector::ZeroVector;
 	float OpeningElapsed = 0.0f;
-
-//private:
-//	EActorState ActorState;
-//	float speed;
-//	float timer;
-//	bool bIsExucute;
-//
-//	//UPROPERTY(EditAnywhere)
-//	int32 ActivateCounter;
-//
-//	UPROPERTY(EditAnywhere)
-//	int32 NumToActivate;
 
 	
 };

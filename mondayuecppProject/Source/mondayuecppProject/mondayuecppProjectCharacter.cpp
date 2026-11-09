@@ -113,7 +113,10 @@ void AmondayuecppProjectCharacter::OnInteractionBegin(UPrimitiveComponent* Overl
 				TEXT("CurrentInteractActorFound")
 			);
 		}
+
 		CurrentInteractActor = OtherActor;
+
+		IInteractableInterface::Execute_ShowInteractWidget(CurrentInteractActor,true);
 	}
 }
 
@@ -137,6 +140,8 @@ void AmondayuecppProjectCharacter::OnInteractionEnd(UPrimitiveComponent* Overlap
 					TEXT("CurrentInteractActorDisFound")
 				);
 			}
+			IInteractableInterface::Execute_ShowInteractWidget(CurrentInteractActor, false);
+
 			CurrentInteractActor = nullptr;
 		}
 	}
@@ -144,10 +149,33 @@ void AmondayuecppProjectCharacter::OnInteractionEnd(UPrimitiveComponent* Overlap
 
 void AmondayuecppProjectCharacter::OnShowInteractionUIBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (OtherActor == nullptr) return;
+
+	if (OtherActor->Implements<UInteractableInterface>())
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Red,
+				TEXT("ShowInteractionUIBegin")
+			);
+		}
+
+		IInteractableInterface::Execute_ShowHighlight(OtherActor, true);
+	}
 }
 
 void AmondayuecppProjectCharacter::OnShowInteractionUIEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (OtherActor == nullptr) return;
+
+	if (OtherActor->Implements<UInteractableInterface>())
+	{
+		IInteractableInterface::Execute_ShowHighlight(OtherActor, false);
+
+	}
 }
 
 
@@ -221,12 +249,5 @@ void AmondayuecppProjectCharacter::DoInteract()
 		);
 	}
 
-	//if (CurrentInteractActor->Implements<UInteractableInterface>())
-	//{
-	//	if (IInteractableInterface* Interact = Cast<IInteractableInterface>(CurrentInteractActor))
-	//	{
-	//		Interact->Interact();
-	//	}
-	//}
 	IInteractableInterface::Execute_Interact(CurrentInteractActor);
 }

@@ -17,4 +17,9 @@ class MONDAYUECPPPROJECT_API IInteractableInterface
 public:
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interact")
     void Interact();
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interact")
+    void ShowInteractWidget(bool _bShow);
+
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interact")
+    void ShowHighlight(bool _bShow);
 };

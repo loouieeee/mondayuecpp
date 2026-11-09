@@ -15,13 +15,6 @@ AActorBase::AActorBase()
 	CameraTargetArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("CameraTargetArrow"));
 	CameraTargetArrow->SetupAttachment(RootComponent);
 
-	//// ArrowComponentを作成する
-	//Arrow = CreateDefaultSubobject<AActor>(TEXT("Arrow"));
-
-	//// ArrowComponentの位置を設定する
-
-	//// ArrowComponentをStaticMeshComponentにAttachする
-
 }
 
 // Called when the game starts or when spawned

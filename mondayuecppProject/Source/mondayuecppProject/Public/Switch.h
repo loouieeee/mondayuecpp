@@ -1,53 +1,4 @@
 //// Fill out your copyright notice in the Description page of Project Settings.
-//
-//#pragma once
-//
-//#include "CoreMinimal.h"
-//#include "GameFramework/Actor.h"
-//#include "Components/SphereComponent.h"
-//#include "Interface/InteractableInterface.h"
-//#include "Switch.generated.h"
-//
-//class AActorBase;
-//
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractBegin,AActor*,InteractActor);
-//
-//UCLASS()
-//class MONDAYUECPPPROJECT_API ASwitch : public AActor, public IInteractableInterface
-//{
-//	GENERATED_BODY()
-//	
-//public:	
-//	// Sets default values for this actor's properties
-//	ASwitch();
-//
-//protected:
-//	// Called when the game starts or when spawned
-//	virtual void BeginPlay() override;
-//
-//public:	
-//	// Called every frame
-//	virtual void Tick(float DeltaTime) override;
-//
-//private:
-//	UPROPERTY(VisibleAnywhere)
-//	UStaticMeshComponent* StaticMesh;
-//
-//	//UPROPERTY(EditAnywhere)
-//	//AActor* ExecuteActor = nullptr;
-//
-//	UPROPERTY(EditAnywhere)
-//	//<AActor*> ExecuteActor = { nullptr };
-//	TArray<TObjectPtr<AActor>> ExecuteActors;
-//
-//public:
-//
-//	UPROPERTY(BlueprintAssignable, Category = "Interact")
-//	FOnInteractBegin OnInteractBegin;
-//
-//	virtual void Interact_Implementation() override;
-//
-//};
 
 #pragma once
 
@@ -88,6 +39,9 @@ public:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
     virtual void Interact_Implementation() override;
+
+    virtual void ShowInteractWidget_Implementation(bool _bShow) override;
+    virtual void ShowHighlight_Implementation(bool _bShow) override;
 
     /** Call from Blueprint when camera has arrived at the requested target. */
     UFUNCTION(BlueprintCallable, Category = "Camera Sequence")
@@ -141,5 +95,12 @@ private:
     bool bWaitingForCamera = false;
     bool bWaitingForExecutions = false;
     bool bWaitingForCameraReturn = false;
+
+
+    UPROPERTY(EditDefaultsOnly, Category = "Highlight")
+    UMaterialInterface* HighlightMaterial;
+
+    UPROPERTY(VisibleAnywhere, Category = "UI")
+    class UWidgetComponent* InteractWidget;
 };
 

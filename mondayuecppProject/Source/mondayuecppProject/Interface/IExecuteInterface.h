@@ -8,7 +8,7 @@
 #include "IExecuteInterface.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(MinimalAPI, BlueprintType)
 class UIExecuteInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -23,12 +23,6 @@ class MONDAYUECPPPROJECT_API IIExecuteInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-
-	//UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Execute")
-	//void ExecuteAction();
-
-	//UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Execute")
-	//AActor* GetArrow();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Execute")
 	bool TryRegisterActivation(AActor* InstigatorActor);
